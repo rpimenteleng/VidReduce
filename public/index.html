@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VidReduce - AI-Powered YouTube Video Summarizer</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    
     <style>
         * {
             margin: 0;
@@ -466,26 +471,6 @@
             <div class="description">
                 Extract key insights from any YouTube video using advanced AI. Get comprehensive summaries in seconds!
             </div>
-            
-            <div class="social-share">
-                <div class="social-share-title">Share VidReduce with friends</div>
-                <div class="social-buttons">
-                    <button class="social-btn copy" onclick="copySiteLink()">
-                        📋 Copy Link
-                    </button>
-                    <a class="social-btn x" href="https://x.com/intent/tweet?text=Check out VidReduce - AI-powered YouTube video summarizer! Get instant summaries of any YouTube video.&url=https://vidreduce.vercel.app/" target="_blank">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="white"/>
-                        </svg>
-                    </a>
-                    <a class="social-btn whatsapp" href="https://wa.me/?text=Check out VidReduce - AI-powered YouTube video summarizer! Get instant summaries of any YouTube video. https://vidreduce.vercel.app/" target="_blank">
-                        💬 WhatsApp
-                    </a>
-                    <a class="social-btn reddit" href="https://reddit.com/submit?url=https%3A//vidreduce.vercel.app/&title=VidReduce%20-%20AI-Powered%20YouTube%20Video%20Summarizer" onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" title="Share on Reddit" rel="noopener">
-                        Share on Reddit
-                    </a>
-                </div>
-            </div>
         </div>
 
         <form id="summarizeForm">
@@ -581,6 +566,27 @@
             </div>
             <div style="margin-top: 15px; text-align: center;">
                 <button class="donate-btn" id="donateBtn" onclick="initiateDonation()">💰 Donate USDC</button>
+            </div>
+        </div>
+
+        <!-- Social Sharing Section -->
+        <div class="social-share">
+            <div class="social-share-title">Share VidReduce with friends</div>
+            <div class="social-buttons">
+                <button class="social-btn copy" onclick="copySiteLink()">
+                    📋 Copy Link
+                </button>
+                <a class="social-btn x" href="https://x.com/intent/tweet?text=Check out VidReduce - AI-powered YouTube video summarizer! Get instant summaries of any YouTube video.&url=https://vidreduce.vercel.app/" target="_blank">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="white"/>
+                    </svg>
+                </a>
+                <a class="social-btn whatsapp" href="https://wa.me/?text=Check out VidReduce - AI-powered YouTube video summarizer! Get instant summaries of any YouTube video. https://vidreduce.vercel.app/" target="_blank">
+                    💬 WhatsApp
+                </a>
+                <a class="social-btn reddit" href="https://reddit.com/submit?url=https%3A//vidreduce.vercel.app/&title=VidReduce%20-%20AI-Powered%20YouTube%20Video%20Summarizer" onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" title="Share on Reddit" rel="noopener">
+                    Share on Reddit
+                </a>
             </div>
         </div>
 
@@ -944,5 +950,4 @@
             }
         }
     </script>
-</body>
-</html>
+    </div>
