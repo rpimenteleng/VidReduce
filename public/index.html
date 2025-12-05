@@ -356,6 +356,20 @@
     </div>
 
     <script>
+        function setupDownloadButtons(resultData) {
+            // Create download links for summary
+            const summaryBlob = new Blob([resultData.htmlContent], { type: 'text/html' });
+            const summaryUrl = URL.createObjectURL(summaryBlob);
+            document.getElementById('downloadSummary').href = summaryUrl;
+            document.getElementById('downloadSummary').download = `summary_${resultData.videoTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+
+            // Create download links for transcript
+            const transcriptBlob = new Blob([resultData.transcript], { type: 'text/plain' });
+            const transcriptUrl = URL.createObjectURL(transcriptBlob);
+            document.getElementById('downloadTranscript').href = transcriptUrl;
+            document.getElementById('downloadTranscript').download = `transcript_${resultData.videoTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+        }
+
         document.getElementById('summarizeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -403,8 +417,9 @@
                     document.getElementById('videoTitle').textContent = resultData.videoTitle;
                     document.getElementById('transcriptStats').textContent = `${resultData.transcriptLength} characters`;
                     document.getElementById('summaryContent').textContent = resultData.summary;
-                    document.getElementById('downloadSummary').href = resultData.summaryFile;
-                    document.getElementById('downloadTranscript').href = resultData.transcriptFile;
+
+                    // Set up download buttons with actual content
+                    setupDownloadButtons(resultData);
                     result.className = 'result show success';
                 } else {
                     // Error

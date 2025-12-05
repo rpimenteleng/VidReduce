@@ -220,6 +220,33 @@ function generateSummaryHTML(videoTitle, summary, videoId) {
 </html>`;
 }
 
+// Download routes
+app.get('/download/transcript/:videoId', (req, res) => {
+  const { videoId } = req.params;
+  const filename = `transcript_${videoId}.txt`;
+  
+  if (fs.existsSync(filename)) {
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'text/plain');
+    res.sendFile(path.join(__dirname, filename));
+  } else {
+    res.status(404).json({ error: 'Transcript file not found' });
+  }
+});
+
+app.get('/download/summary/:videoId', (req, res) => {
+  const { videoId } = req.params;
+  const filename = `summary_${videoId}.html`;
+  
+  if (fs.existsSync(filename)) {
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'text/html');
+    res.sendFile(path.join(__dirname, filename));
+  } else {
+    res.status(404).json({ error: 'Summary file not found' });
+  }
+});
+
 // Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -257,10 +284,7 @@ app.post('/summarize', async (req, res) => {
       });
     }
 
-    // Save transcript file
-    const transcriptFilename = `transcript_${videoId}.txt`;
-    fs.writeFileSync(transcriptFilename, transcript);
-    console.log(`Transcript saved to ${transcriptFilename}`);
+    console.log(`Transcript fetched successfully (${transcript.length} characters)`);
 
     // Generate summary
     const summary = await summarizeTranscript(transcript, videoTitle);
@@ -272,19 +296,17 @@ app.post('/summarize', async (req, res) => {
 
     // Generate HTML summary
     const htmlContent = generateSummaryHTML(videoTitle, summary, videoId);
-    const summaryFilename = `summary_${videoId}.html`;
-    fs.writeFileSync(summaryFilename, htmlContent);
 
-    console.log(`Summary saved to ${summaryFilename}`);
+    console.log('Summary generated successfully');
 
     // Return success response with summary data
     res.json({
       success: true,
       videoTitle,
       summary,
-      transcriptLength: transcript.length,
-      summaryFile: summaryFilename,
-      transcriptFile: transcriptFilename
+      transcript,
+      htmlContent,
+      transcriptLength: transcript.length
     });
 
   } catch (error) {
