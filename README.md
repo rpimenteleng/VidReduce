@@ -4,12 +4,14 @@ A Node.js command-line tool that fetches YouTube video transcripts and generates
 
 ## Features
 
-- 🎥 **Fetch YouTube Transcripts** - Automatically retrieves closed captions/transcripts from any YouTube video
+- � **Web Interface** - Beautiful, modern web UI with real-time processing
+- �🎥 **Fetch YouTube Transcripts** - Automatically retrieves closed captions/transcripts from any YouTube video
 - 🤖 **AI-Powered Summaries** - Uses OpenAI's GPT-4o-mini to generate concise summaries with main takeaways
-- 🌐 **Beautiful HTML Output** - Generates professional HTML summaries that automatically open in your browser
+- � **Beautiful HTML Output** - Generates professional HTML summaries that automatically open in browser
 - 💾 **Saves Output** - Stores both full transcripts and formatted HTML summaries as files
 - ✅ **Video Validation** - Verifies video exists before processing using YouTube Data API
-- 🔒 **Secure** - Uses environment variables for API keys (never hardcoded)
+- 🔒 **Secure** - API keys entered securely in web interface (never stored)
+- 📱 **Mobile-Friendly** - Responsive design works on all devices
 
 ## Prerequisites
 
@@ -64,7 +66,25 @@ Before you begin, ensure you have:
 
 ## Usage
 
-### Basic Usage
+### Web Interface (Recommended)
+The easiest way to use YT Summarize is through the web interface:
+
+```bash
+npm run web
+```
+
+Then open your browser and visit `http://localhost:3000`
+
+**Features:**
+- 🎨 Beautiful, modern web interface
+- 🔐 Secure API key input (not stored)
+- 📱 Mobile-friendly responsive design
+- ⚡ Real-time processing with loading indicators
+- 📄 Automatic HTML summary generation
+- 🔗 Direct YouTube video links
+
+### Command Line
+For advanced users or automation:
 
 ```bash
 node youtubeSummarize.js VIDEO_ID
@@ -130,13 +150,16 @@ Summary saved to summary_3hptKYix4X8.html
 
 ```
 YTSummarize/
-├── youtubeSummarize.js       # Main application script
+├── youtubeSummarize.js       # Main CLI application script
+├── webServer.js              # Express.js web server
+├── public/
+│   └── index.html            # Web interface HTML
 ├── package.json               # Node.js dependencies and metadata
 ├── .env                       # Environment variables (API keys)
 ├── .gitignore                 # Files to ignore in git
 ├── README.md                  # This file
 ├── transcript_*.txt           # Generated transcripts (ignored by git)
-└── summary_*.txt              # Generated summaries (ignored by git)
+└── summary_*.html             # Generated summaries (ignored by git)
 ```
 
 ## Dependencies

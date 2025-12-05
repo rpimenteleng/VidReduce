@@ -5,12 +5,14 @@
     "main": "youtubeSummarize.js",
     "scripts": {
         "start": "node youtubeSummarize.js",
+        "web": "node webServer.js",
         "fetch": "node youtubeSummarize.js"
     },
     "dependencies": {
         "axios": "^1.7.9",
         "dotenv": "^16.4.5",
-        "openai": "^4.104.0",
+        "express": "^4.22.1",
+        "openai": "^4.67.3",
         "youtubei.js": "^16.0.1"
     },
     "keywords": [

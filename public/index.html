@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT Summarize - AI-Powered YouTube Video Summarizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #adb5bd;
+        }
+
+        .api-keys-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .api-keys-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .api-keys-section .form-group {
+            margin-bottom: 15px;
+        }
+
+        .api-keys-section .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4ecdc4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #28a745;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.success {
+            border-left-color: #28a745;
+        }
+
+        .result.error {
+            border-left-color: #dc3545;
+        }
+
+        .result h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .result .summary-preview {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 3px solid #4ecdc4;
+            white-space: pre-line;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-right: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: #0056b3;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: #4ecdc4;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .form-group input {
+                padding: 12px;
+            }
+
+            .submit-btn {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎥 YT Summarize</div>
+            <div class="subtitle">AI-Powered YouTube Video Summarizer</div>
+            <div class="description">
+                Extract key insights from any YouTube video using advanced AI. Get comprehensive summaries in seconds!
+            </div>
+        </div>
+
+        <form id="summarizeForm">
+            <div class="api-keys-section">
+                <h3>🔑 API Configuration</h3>
+                <div class="form-group">
+                    <label for="youtubeKey">YouTube Data API Key</label>
+                    <input
+                        type="password"
+                        id="youtubeKey"
+                        name="youtubeKey"
+                        placeholder="Enter your YouTube Data API v3 key"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="openaiKey">OpenAI API Key</label>
+                    <input
+                        type="password"
+                        id="openaiKey"
+                        name="openaiKey"
+                        placeholder="Enter your OpenAI API key"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="videoId">YouTube Video ID or URL</label>
+                <input
+                    type="text"
+                    id="videoId"
+                    name="videoId"
+                    placeholder="e.g., dQw4w9WgXcQ or https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                🚀 Generate Summary
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing video and generating AI summary...</p>
+            <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">This may take 30-60 seconds for longer videos</p>
+        </div>
+
+        <div class="result" id="result">
+            <h3 id="resultTitle">Summary Generated Successfully!</h3>
+            <div class="stats">
+                <span id="videoTitle"></span>
+                <span id="transcriptStats"></span>
+            </div>
+            <div class="summary-preview" id="summaryContent"></div>
+            <div>
+                <a href="#" class="download-btn" id="downloadSummary" target="_blank">📄 View Full Summary</a>
+                <a href="#" class="download-btn" id="downloadTranscript" target="_blank">📝 View Transcript</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                Powered by OpenAI GPT & YouTube Data API •
+                <a href="https://github.com/rpimenteleng/YTSummarize" target="_blank">View on GitHub</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('summarizeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+
+            // Get form data
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            // Extract video ID from URL if full URL provided
+            let videoId = data.videoId.trim();
+            if (videoId.includes('youtube.com/watch?v=')) {
+                const url = new URL(videoId);
+                videoId = url.searchParams.get('v');
+            } else if (videoId.includes('youtu.be/')) {
+                const url = new URL(videoId);
+                videoId = url.pathname.substring(1);
+            }
+
+            // Update form data with cleaned video ID
+            data.videoId = videoId;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            loading.classList.add('show');
+            result.classList.remove('show');
+
+            try {
+                const response = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const resultData = await response.json();
+
+                if (response.ok) {
+                    // Success
+                    document.getElementById('resultTitle').textContent = '✅ Summary Generated Successfully!';
+                    document.getElementById('videoTitle').textContent = resultData.videoTitle;
+                    document.getElementById('transcriptStats').textContent = `${resultData.transcriptLength} characters`;
+                    document.getElementById('summaryContent').textContent = resultData.summary;
+                    document.getElementById('downloadSummary').href = resultData.summaryFile;
+                    document.getElementById('downloadTranscript').href = resultData.transcriptFile;
+                    result.className = 'result show success';
+                } else {
+                    // Error
+                    document.getElementById('resultTitle').textContent = '❌ Error';
+                    document.getElementById('summaryContent').textContent = resultData.error;
+                    document.getElementById('videoTitle').textContent = '';
+                    document.getElementById('transcriptStats').textContent = '';
+                    result.className = 'result show error';
+                }
+            } catch (error) {
+                document.getElementById('resultTitle').textContent = '❌ Network Error';
+                document.getElementById('summaryContent').textContent = 'Failed to connect to the server. Please try again.';
+                result.className = 'result show error';
+            }
+
+            // Hide loading state
+            submitBtn.disabled = false;
+            submitBtn.textContent = '🚀 Generate Summary';
+            loading.classList.remove('show');
+        });
+
+        // Auto-extract video ID from URL input
+        document.getElementById('videoId').addEventListener('input', (e) => {
+            let value = e.target.value.trim();
+            if (value.includes('youtube.com/watch?v=')) {
+                const url = new URL(value);
+                e.target.value = url.searchParams.get('v');
+            } else if (value.includes('youtu.be/')) {
+                const url = new URL(value);
+                e.target.value = url.pathname.substring(1);
+            }
+        });
+    </script>
+</body>
+</html>
