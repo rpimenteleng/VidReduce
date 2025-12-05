@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YT Summarize - AI-Powered YouTube Video Summarizer</title>
+    <title>VidReduce - AI-Powered YouTube Video Summarizer</title>
     <style>
         * {
             margin: 0;
@@ -231,7 +231,6 @@
             text-decoration: none;
             border-radius: 6px;
             font-size: 0.9rem;
-            margin-right: 10px;
             transition: background 0.3s ease;
         }
 
@@ -377,7 +376,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🎥 YT Summarize</div>
+            <div class="logo">🎥 VidReduce</div>
             <div class="subtitle">AI-Powered YouTube Video Summarizer</div>
             <div class="description">
                 Extract key insights from any YouTube video using advanced AI. Get comprehensive summaries in seconds!
@@ -471,12 +470,12 @@
                 <span id="transcriptStats"></span>
             </div>
             <div class="summary-preview" id="summaryContent"></div>
-            <div>
+            <div style="display: flex; justify-content: center; gap: 15px; margin: 20px 0;">
                 <a href="#" class="download-btn" id="downloadSummary" target="_blank">📄 View Full Summary</a>
                 <a href="#" class="download-btn" id="downloadTranscript" target="_blank">📝 View Transcript</a>
             </div>
             <div style="margin-top: 15px; text-align: center;">
-                <button class="donate-btn" id="donateBtn" onclick="initiateDonation()">💰 Donate USDC on Base</button>
+                <button class="donate-btn" id="donateBtn" onclick="initiateDonation()">💰 Donate USDC</button>
             </div>
         </div>
 
@@ -669,13 +668,17 @@
                 donateBtn.textContent = '❌ Try Again';
                 donateBtn.disabled = false;
                 setTimeout(() => {
-                    donateBtn.textContent = '💰 Donate USDC on Base';
+                    donateBtn.textContent = '💰 Donate USDC';
                 }, 3000);
             }
         }
 
         // Function to show donation modal
         function showDonationModal(donationInfo) {
+            // Format network names with proper capitalization
+            const formattedNetworks = donationInfo.supportedNetworks
+                .map(network => network.charAt(0).toUpperCase() + network.slice(1))
+                .join(' / ');
             // Create modal overlay
             const modal = document.createElement('div');
             modal.style.cssText = `
@@ -688,6 +691,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                place-items: center;
                 z-index: 10000;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             `;
@@ -700,8 +704,14 @@
                 border-radius: 12px;
                 max-width: 500px;
                 width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
                 text-align: center;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
             `;
 
             modalContent.innerHTML = `
@@ -713,10 +723,10 @@
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                     <h3 style="margin: 0 0 10px 0; color: #333;">Send Crypto Donation</h3>
                     <div style="font-family: monospace; background: white; padding: 10px; border-radius: 4px; border: 1px solid #ddd; word-break: break-all; margin-bottom: 10px;">
-                        ${donationInfo.wallet}
+                        ${donationInfo.wallets.ethereum}
                     </div>
                     <p style="margin: 5px 0; color: #666; font-size: 14px;">
-                        Network: <strong>${donationInfo.network}</strong><br>
+                        Networks: <strong>${formattedNetworks}</strong><br>
                         Preferred: <strong>${donationInfo.preferredToken}</strong><br>
                         Amount: <em>${donationInfo.amount}</em>
                     </p>
@@ -726,13 +736,13 @@
                     <p style="margin: 0; color: #2d5a2d; font-size: 14px; line-height: 1.5;">
                         <strong>How to donate:</strong><br>
                         1. Copy the wallet address above<br>
-                        2. Send ${donationInfo.preferredToken} on ${donationInfo.network} network<br>
+                        2. Send ${donationInfo.preferredToken} on any supported network<br>
                         3. Any amount is greatly appreciated! 🙏
                     </p>
                 </div>
 
                 <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="copyToClipboard('${donationInfo.wallet}')" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                    <button onclick="copyToClipboard('${donationInfo.wallets.base}')" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500;">
                         📋 Copy Address
                     </button>
                     <button onclick="closeDonationModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">

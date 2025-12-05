@@ -1,5 +1,5 @@
 {
-    "name": "yt-summarize",
+    "name": "vidreduce",
     "version": "1.0.0",
     "description": "YouTube video summarizer with web interface and CLI tools using OpenAI GPT or Google Gemini",
     "main": "youtubeSummarize.js",

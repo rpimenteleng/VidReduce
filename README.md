@@ -1,4 +1,4 @@
-# YT Summarize
+# VidReduce
 
 A powerful YouTube video summarizer with both web interface and command-line tools. Extract key insights from any YouTube video using OpenAI GPT or Google Gemini AI models. Perfect for quickly understanding educational content, tutorials, podcasts, and videos.
 
@@ -79,7 +79,7 @@ Before you begin, ensure you have:
 ## Usage
 
 ### Web Interface (Recommended)
-The easiest way to use YT Summarize is through the web interface:
+The easiest way to use VidReduce is through the web interface:
 
 ```bash
 npm run web
