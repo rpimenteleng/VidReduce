@@ -1,17 +1,18 @@
 # YT Summarize
 
-A Node.js command-line tool that fetches YouTube video transcripts and generates AI-powered summaries using OpenAI's GPT model. Perfect for quickly extracting key insights from educational videos, tutorials, podcasts, and other YouTube content.
+A powerful YouTube video summarizer with both web interface and command-line tools. Extract key insights from any YouTube video using OpenAI's GPT models. Perfect for quickly understanding educational content, tutorials, podcasts, and videos.
 
-## Features
+## ✨ Features
 
-- � **Web Interface** - Beautiful, modern web UI with real-time processing
-- �🎥 **Fetch YouTube Transcripts** - Automatically retrieves closed captions/transcripts from any YouTube video
-- 🤖 **AI-Powered Summaries** - Uses OpenAI's GPT-4o-mini to generate concise summaries with main takeaways
-- � **Beautiful HTML Output** - Generates professional HTML summaries that automatically open in browser
-- 💾 **Saves Output** - Stores both full transcripts and formatted HTML summaries as files
-- ✅ **Video Validation** - Verifies video exists before processing using YouTube Data API
-- 🔒 **Secure** - API keys entered securely in web interface (never stored)
+- 🌐 **Beautiful Web Interface** - Modern, responsive web UI with real-time processing
+- 💻 **Command Line Tool** - Powerful CLI for automation and scripting
+- 🎥 **YouTube Transcript Fetching** - Automatically retrieves closed captions from videos
+- 🤖 **AI-Powered Summaries** - Uses OpenAI GPT-4o-mini for intelligent summarization
+- 🎨 **Professional HTML Output** - Generates beautiful, formatted summary reports
 - 📱 **Mobile-Friendly** - Responsive design works on all devices
+- 🔒 **Secure API Handling** - API keys entered securely (never stored)
+- � **Deployment Flexible** - Works locally or deploy anywhere (Vercel, Railway, Heroku, etc.)
+- ⚡ **Fast Processing** - Optimized for quick results
 
 ## Prerequisites
 
@@ -145,6 +146,50 @@ Summary saved to summary_3hptKYix4X8.html
 ...
 --- END SUMMARY ---
 ```
+
+## 🌐 Deployment
+
+The app is **deployment-agnostic** - deploy anywhere that supports Node.js!
+
+### Local Development
+```bash
+npm run web  # Web interface on http://localhost:3000
+npm run fetch VIDEO_ID  # CLI usage
+```
+
+### Cloud Deployment Options
+
+#### Vercel (Recommended)
+```bash
+npm install -g vercel
+vercel login
+vercel
+# Set environment variables in Vercel dashboard
+```
+
+#### Railway
+```bash
+npm install -g @railway/cli
+railway login
+railway deploy
+```
+
+#### Render
+1. Connect your GitHub repo
+2. Choose "Web Service"
+3. Set build command: `npm install`
+4. Set start command: `npm run web`
+
+#### Heroku
+```bash
+heroku create your-app-name
+git push heroku main
+```
+
+#### DigitalOcean App Platform
+1. Connect GitHub repo
+2. Set runtime to Node.js
+3. Configure environment variables
 
 ## Project Structure
 

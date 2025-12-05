@@ -1,7 +1,7 @@
 {
     "name": "yt-summarize",
     "version": "1.0.0",
-    "description": "Node.js app to fetch YouTube video transcripts using YouTube Data API and youtubei.js",
+    "description": "YouTube video summarizer with web interface and CLI tools using OpenAI GPT",
     "main": "youtubeSummarize.js",
     "scripts": {
         "start": "node youtubeSummarize.js",
