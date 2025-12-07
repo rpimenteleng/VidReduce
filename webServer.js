@@ -23,6 +23,194 @@ app.use(express.static(path.join(__dirname, 'public')));
 let openai = null;
 
 /**
+ * Check if URL is a Twitter/X URL
+ */
+function isTwitterUrl(url) {
+  return /twitter\.com|x\.com/.test(url) && /status\/\d+/.test(url);
+}
+
+/**
+ * Extract tweet ID from Twitter/X URL
+ */
+function extractTweetId(url) {
+  const match = url.match(/status\/(\d+)/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Process Twitter/X video using Gemini's video understanding
+ * Uses a third-party service to get video URL, then Gemini to analyze
+ */
+async function processTwitterVideo(tweetUrl, apiKey) {
+  console.log('Processing Twitter/X video:', tweetUrl);
+  
+  const tweetId = extractTweetId(tweetUrl);
+  if (!tweetId) {
+    throw new Error('Could not extract tweet ID from URL');
+  }
+
+  try {
+    // Method 1: Use fxtwitter.com API (free, no auth required)
+    // This service provides video URLs from tweets
+    const fxUrl = `https://api.fxtwitter.com/status/${tweetId}`;
+    console.log('Fetching tweet data from fxtwitter:', fxUrl);
+    
+    const response = await axios.get(fxUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      timeout: 15000
+    });
+
+    const tweetData = response.data;
+    
+    if (!tweetData.tweet) {
+      throw new Error('Could not fetch tweet data');
+    }
+
+    const tweet = tweetData.tweet;
+    const tweetText = tweet.text || '';
+    const authorName = tweet.author?.name || 'Unknown';
+    
+    // Check for video in media
+    let videoUrl = null;
+    if (tweet.media?.videos && tweet.media.videos.length > 0) {
+      // Get the highest quality video URL
+      const video = tweet.media.videos[0];
+      videoUrl = video.url || (video.variants && video.variants[video.variants.length - 1]?.url);
+    } else if (tweet.media?.all && tweet.media.all.length > 0) {
+      // Check in 'all' media array
+      for (const media of tweet.media.all) {
+        if (media.type === 'video' && media.url) {
+          videoUrl = media.url;
+          break;
+        }
+      }
+    }
+
+    if (!videoUrl) {
+      throw new Error('No video found in this tweet. Make sure the tweet contains a video.');
+    }
+
+    console.log('Found video URL:', videoUrl);
+
+    // Use Gemini to analyze the video directly via URL
+    const summary = await analyzeVideoWithGemini(videoUrl, tweetText, authorName, apiKey);
+    
+    return {
+      videoTitle: `Twitter Video by @${authorName}`,
+      transcript: `Tweet: ${tweetText}\n\n[Video content analyzed by AI]`,
+      summary: summary,
+      tweetId: tweetId
+    };
+
+  } catch (error) {
+    console.error('Twitter video processing error:', error.message);
+    
+    // Provide helpful error messages
+    if (error.message.includes('No video found')) {
+      throw error;
+    } else if (error.response?.status === 404) {
+      throw new Error('Tweet not found. Make sure the tweet exists and is public.');
+    } else if (error.code === 'ECONNABORTED') {
+      throw new Error('Request timed out. Please try again.');
+    } else {
+      throw new Error(`Failed to process Twitter video: ${error.message}`);
+    }
+  }
+}
+
+/**
+ * Analyze video using Gemini's video understanding capability
+ */
+async function analyzeVideoWithGemini(videoUrl, tweetText, authorName, apiKey) {
+  console.log('Analyzing video with Gemini...');
+
+  // Download video to buffer for Gemini (since Gemini File API needs the actual file)
+  // For serverless, we'll use inline data with size limits
+  
+  try {
+    // Download video (limited to ~15MB for inline processing)
+    const videoResponse = await axios.get(videoUrl, {
+      responseType: 'arraybuffer',
+      timeout: 60000,
+      maxContentLength: 15 * 1024 * 1024, // 15MB limit
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+
+    const videoBase64 = Buffer.from(videoResponse.data).toString('base64');
+    const videoSize = videoResponse.data.length / (1024 * 1024);
+    console.log(`Video downloaded: ${videoSize.toFixed(2)}MB`);
+
+    // Determine mime type from URL or default to mp4
+    let mimeType = 'video/mp4';
+    if (videoUrl.includes('.webm')) mimeType = 'video/webm';
+    else if (videoUrl.includes('.mov')) mimeType = 'video/mov';
+
+    const prompt = `You are analyzing a Twitter/X video. Please provide a comprehensive summary of this video.
+
+Tweet text: "${tweetText}"
+Posted by: @${authorName}
+
+Please analyze the video and provide:
+1. A brief description of what's happening in the video
+2. Key points or main message
+3. Any spoken content or dialogue (transcribe if possible)
+4. Main takeaways in bullet point format
+
+IMPORTANT: Focus on the actual video content. If there's speech, transcribe the key parts. Format your response with clear bullet points for the main takeaways.`;
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            {
+              inline_data: {
+                mime_type: mimeType,
+                data: videoBase64
+              }
+            },
+            {
+              text: prompt
+            }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 4000,
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Gemini video analysis error:', errorData);
+      throw new Error(`Gemini API error: ${errorData.error?.message || response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+      return data.candidates[0].content.parts[0].text;
+    } else {
+      throw new Error('Unexpected Gemini response format');
+    }
+
+  } catch (error) {
+    if (error.message.includes('maxContentLength')) {
+      throw new Error('Video is too large to process. Maximum size is 15MB.');
+    }
+    throw error;
+  }
+}
+
+/**
  * Fetch video details to verify the video exists
  */
 async function getVideoDetails(videoId, apiKey) {
@@ -334,6 +522,128 @@ function generateSummaryHTML(videoTitle, summary, videoId) {
 </html>`;
 }
 
+/**
+ * Generate HTML content for Twitter video summary
+ */
+function generateTwitterSummaryHTML(videoTitle, summary, tweetUrl, tweetId) {
+  const currentDate = new Date().toLocaleDateString();
+  const currentTime = new Date().toLocaleTimeString();
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Video Summary - ${videoTitle}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #1da1f2;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .video-title {
+            color: #1a1a1a;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .video-link {
+            color: #1da1f2;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .video-link:hover {
+            text-decoration: underline;
+        }
+        .metadata {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .summary-section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-left: 4px solid #1da1f2;
+            padding-left: 15px;
+        }
+        .summary-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #1da1f2;
+            white-space: pre-line;
+            font-size: 16px;
+            line-height: 1.7;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #1da1f2;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .back-button:hover {
+            background: #0c85d0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="video-title">${videoTitle}</h1>
+            <a href="${tweetUrl}" class="video-link" target="_blank">
+                View on Twitter/X ↗
+            </a>
+            <div class="metadata">
+                Generated on ${currentDate} at ${currentTime}
+            </div>
+        </div>
+
+        <div class="summary-section">
+            <h2 class="section-title">📋 AI-Generated Video Analysis</h2>
+            <div class="summary-content">${summary}</div>
+        </div>
+
+        <div class="footer">
+            <p>Generated by VidReduce - AI-powered video analysis</p>
+            <a href="/" class="back-button">← Analyze Another Video</a>
+        </div>
+    </div>
+</body>
+</html>`;
+}
+
 // Download routes
 app.get('/download/transcript/:videoId', (req, res) => {
   const { videoId } = req.params;
@@ -415,7 +725,7 @@ app.post('/donate', (req, res) => {
 });
 
 app.post('/summarize', async (req, res) => {
-  const { youtubeKey, aiProvider, openaiKey, geminiKey, videoId } = req.body;
+  const { youtubeKey, aiProvider, openaiKey, geminiKey, videoId, videoUrl } = req.body;
 
   // Check if environment variables are available
   const hasEnvYouTubeKey = process.env.YOUTUBE_API_KEY;
@@ -427,25 +737,66 @@ app.post('/summarize', async (req, res) => {
   const finalOpenAIKey = hasEnvOpenAIKey || openaiKey;
   const finalGeminiKey = hasEnvGeminiKey || geminiKey;
 
+  // Determine AI provider - default to gemini if available
+  const finalAiProvider = aiProvider || (finalGeminiKey ? 'gemini' : 'openai');
+
+  // Check if this is a Twitter/X URL
+  const inputUrl = videoUrl || videoId;
+  const isTwitter = isTwitterUrl(inputUrl);
+
+  if (isTwitter) {
+    // Twitter/X video processing (requires Gemini)
+    if (!finalGeminiKey) {
+      return res.status(400).json({
+        error: 'Gemini API key is required for Twitter/X video processing.'
+      });
+    }
+
+    try {
+      console.log('Processing Twitter/X video...');
+      const result = await processTwitterVideo(inputUrl, finalGeminiKey);
+      
+      // Generate HTML content for Twitter video
+      const htmlContent = generateTwitterSummaryHTML(result.videoTitle, result.summary, inputUrl, result.tweetId);
+
+      res.json({
+        success: true,
+        videoTitle: result.videoTitle,
+        summary: result.summary,
+        transcript: result.transcript,
+        htmlContent,
+        source: 'twitter'
+      });
+
+    } catch (error) {
+      console.error('Twitter video processing error:', error);
+      res.status(500).json({
+        error: error.message || 'Failed to process Twitter video.'
+      });
+    }
+    return;
+  }
+
+  // YouTube video processing
   if (!finalYouTubeKey || !videoId) {
     return res.status(400).json({
       error: 'Missing required fields: YouTube API key and video ID are required.'
     });
   }
 
-  if (aiProvider === 'openai' && !finalOpenAIKey) {
+  if (finalAiProvider === 'openai' && !finalOpenAIKey) {
     return res.status(400).json({
       error: 'OpenAI API key is required when using OpenAI.'
     });
   }
 
-  if (aiProvider === 'gemini' && !finalGeminiKey) {
+  if (finalAiProvider === 'gemini' && !finalGeminiKey) {
     return res.status(400).json({
       error: 'Google Gemini API key is required when using Gemini.'
     });
   }
 
-  if (!aiProvider || !['openai', 'gemini'].includes(aiProvider)) {
+  if (!finalAiProvider || !['openai', 'gemini'].includes(finalAiProvider)) {
     return res.status(400).json({
       error: 'Invalid AI provider. Must be "openai" or "gemini".'
     });

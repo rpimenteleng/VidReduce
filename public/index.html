@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VidReduce - AI-Powered YouTube Video Summarizer</title>
+    <title>VidReduce - AI-Powered Video Summarizer</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -467,9 +467,9 @@
     <div class="container">
         <div class="header">
             <div class="logo">🎥 VidReduce</div>
-            <div class="subtitle">AI-Powered YouTube Video Summarizer</div>
+            <div class="subtitle">AI-Powered Video Summarizer</div>
             <div class="description">
-                Extract key insights from any YouTube video using advanced AI. Get comprehensive summaries in seconds!
+                Extract key insights from YouTube videos and Twitter/X video posts using advanced AI. Get comprehensive summaries in seconds!
             </div>
         </div>
 
@@ -532,14 +532,17 @@
             </div>
 
             <div class="form-group">
-                <label for="videoId">YouTube Video ID or URL</label>
+                <label for="videoId">Video URL or ID</label>
                 <input
                     type="text"
                     id="videoId"
                     name="videoId"
-                    placeholder="e.g., dQw4w9WgXcQ or https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                    placeholder="YouTube URL/ID or Twitter/X video URL"
                     required
                 >
+                <div style="font-size: 0.85rem; color: #666; margin-top: 8px;">
+                    Supports: YouTube (URL or video ID) • Twitter/X video tweets
+                </div>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">
@@ -647,22 +650,30 @@
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
 
-            // Extract video ID from URL if full URL provided
-            let videoId = data.videoId.trim();
-            if (videoId.includes('youtube.com/watch?v=')) {
-                const url = new URL(videoId);
-                videoId = url.searchParams.get('v');
-            } else if (videoId.includes('youtu.be/')) {
-                const url = new URL(videoId);
-                videoId = url.pathname.substring(1);
-            }
+            // Check if it's a Twitter/X URL
+            let inputValue = data.videoId.trim();
+            const isTwitterUrl = /twitter\.com|x\.com/.test(inputValue) && /status\/\d+/.test(inputValue);
 
-            // Update form data with cleaned video ID
-            data.videoId = videoId;
+            if (isTwitterUrl) {
+                // For Twitter, pass the full URL
+                data.videoUrl = inputValue;
+                data.videoId = inputValue;
+            } else {
+                // Extract video ID from YouTube URL if full URL provided
+                let videoId = inputValue;
+                if (videoId.includes('youtube.com/watch?v=')) {
+                    const url = new URL(videoId);
+                    videoId = url.searchParams.get('v');
+                } else if (videoId.includes('youtu.be/')) {
+                    const url = new URL(videoId);
+                    videoId = url.pathname.substring(1);
+                }
+                data.videoId = videoId;
+            }
 
             // Show loading state
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
+            submitBtn.textContent = isTwitterUrl ? 'Analyzing Twitter Video...' : 'Processing...';
             loading.classList.add('show');
             result.classList.remove('show');
 
@@ -681,7 +692,14 @@
                     // Success
                     document.getElementById('resultTitle').textContent = '✅ Summary Generated Successfully!';
                     document.getElementById('videoTitle').textContent = resultData.videoTitle;
-                    document.getElementById('transcriptStats').textContent = `${resultData.transcriptLength} characters`;
+                    
+                    // Handle different stats for Twitter vs YouTube
+                    if (resultData.source === 'twitter') {
+                        document.getElementById('transcriptStats').textContent = 'Video analyzed by AI';
+                    } else {
+                        document.getElementById('transcriptStats').textContent = `${resultData.transcriptLength} characters`;
+                    }
+                    
                     document.getElementById('summaryContent').textContent = resultData.summary;
 
                     // Set up download buttons with actual content
@@ -707,15 +725,23 @@
             loading.classList.remove('show');
         });
 
-        // Auto-extract video ID from URL input
+        // Don't auto-extract for Twitter URLs
         document.getElementById('videoId').addEventListener('input', (e) => {
             let value = e.target.value.trim();
+            // Skip Twitter/X URLs
+            if (/twitter\.com|x\.com/.test(value)) {
+                return;
+            }
             if (value.includes('youtube.com/watch?v=')) {
-                const url = new URL(value);
-                e.target.value = url.searchParams.get('v');
+                try {
+                    const url = new URL(value);
+                    e.target.value = url.searchParams.get('v');
+                } catch (err) {}
             } else if (value.includes('youtu.be/')) {
-                const url = new URL(value);
-                e.target.value = url.pathname.substring(1);
+                try {
+                    const url = new URL(value);
+                    e.target.value = url.pathname.substring(1);
+                } catch (err) {}
             }
         });
 

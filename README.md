@@ -1,12 +1,13 @@
 # VidReduce
 
-A powerful YouTube video summarizer with a beautiful web interface. Extract key insights from any YouTube video using OpenAI GPT or Google Gemini AI models. Perfect for quickly understanding educational content, tutorials, podcasts, and videos.
+A powerful video summarizer with a beautiful web interface. Extract key insights from **YouTube videos** and **Twitter/X video posts** using OpenAI GPT or Google Gemini AI models. Perfect for quickly understanding educational content, tutorials, podcasts, and social media videos.
 
 ## ✨ Features
 
 - 🌐 **Beautiful Web Interface** - Modern, responsive web UI with real-time processing
 - 🎥 **YouTube Transcript Fetching** - Automatically retrieves closed captions from videos
-- 🤖 **AI-Powered Summaries** - Uses OpenAI GPT-4o-mini or Google Gemini Pro for intelligent summarization
+- 🐦 **Twitter/X Video Support** - Analyze video tweets using AI vision (Gemini)
+- 🤖 **AI-Powered Summaries** - Uses OpenAI GPT-4o-mini or Google Gemini 2.5 Flash for intelligent summarization
 - 🎨 **Professional HTML Output** - Generates beautiful, formatted summary reports
 - 📱 **Mobile-Friendly** - Responsive design works on all devices
 - 🔒 **Secure API Handling** - API keys entered securely (never stored)
@@ -73,7 +74,45 @@ Before you begin, ensure you have:
 3. Create a new API key
 4. Copy the API key to your `.env` file
 
-**Note:** Google Gemini API has a generous free tier and uses the `gemini-2.5-pro` model for high-quality summarization.
+**Note:** Google Gemini API has a generous free tier and uses the `gemini-2.5-flash` model for high-quality summarization. **Required for Twitter/X video support.**
+
+## 🐦 Twitter/X Video Support
+
+VidReduce now supports analyzing videos from Twitter/X posts! This feature uses Gemini's native video understanding capabilities.
+
+### How Twitter/X Video Processing Works
+
+1. **Paste a Twitter/X URL** - Just paste any tweet URL containing a video (e.g., `https://x.com/user/status/123456789`)
+2. **Automatic Detection** - The app automatically detects Twitter/X URLs
+3. **Video Extraction** - Uses the fxtwitter API to extract the video URL (no authentication required)
+4. **AI Analysis** - Gemini 2.5 Flash analyzes the video directly, providing:
+   - Video description
+   - Transcription of spoken content
+   - Key points and insights
+   - Bullet-point summary
+
+### Twitter/X Limitations
+
+| Limitation | Details |
+|------------|---------|
+| **Video Size** | Maximum 15MB (covers most Twitter videos) |
+| **AI Provider** | Requires Gemini API key (OpenAI not supported for video analysis) |
+| **Public Tweets Only** | Cannot access private or protected tweets |
+| **Video Required** | The tweet must contain a video (not just images) |
+
+### Why 15MB Limit?
+
+- Gemini's inline data limit is 20MB total
+- Base64 encoding adds ~33% overhead
+- 15MB video → ~20MB encoded
+- Most Twitter videos are under 15MB due to Twitter's compression
+
+### Supported URL Formats
+
+```
+https://twitter.com/username/status/1234567890
+https://x.com/username/status/1234567890
+```
 
 ## Usage
 
@@ -162,58 +201,122 @@ YTSummarize/
 
 ## How It Works
 
-### 1. Environment Setup
+### YouTube Videos
+
+#### 1. Environment Setup
 The script loads API keys from the `.env` file and validates they exist.
 
-### 2. Video Validation
+#### 2. Video Validation
 Uses YouTube Data API v3 to verify the video exists and retrieve metadata (title, description, etc.).
 
-### 3. Transcript Retrieval
+#### 3. Transcript Retrieval
 Uses `youtubei.js` to access YouTube's internal API and fetch the transcript segments. This works even without official captions API access.
 
-### 4. AI Summarization
-Sends the transcript to OpenAI's GPT-4o-mini model with a carefully crafted prompt that requests:
+#### 4. AI Summarization
+Sends the transcript to OpenAI's GPT-4o-mini or Google Gemini with a carefully crafted prompt that requests:
 - Clear, concise summary
 - Main takeaways in bullet points
 - Key concepts and insights
 
-### 5. Output Generation
+#### 5. Output Generation
 Saves both raw transcript and formatted summary to disk and displays the summary in the console.
+
+### Twitter/X Videos
+
+#### 1. URL Detection
+The app automatically detects Twitter/X URLs using regex pattern matching.
+
+#### 2. Video Extraction
+Uses the fxtwitter.com API (free, no auth required) to:
+- Fetch tweet metadata
+- Extract the video URL from the tweet
+
+#### 3. Video Download
+Downloads the video (up to 15MB) into memory as a buffer.
+
+#### 4. Gemini Video Analysis
+Sends the video directly to Gemini 2.5 Flash which:
+- Processes both visual and audio streams
+- Transcribes spoken content
+- Analyzes visual elements
+- Generates comprehensive summary
+
+#### 5. Output Generation
+Returns the AI-generated analysis including description, transcription, and key takeaways.
 
 ## Troubleshooting
 
-### "Please ensure YOUTUBE_API_KEY is set"
+### YouTube Issues
+
+#### "Please ensure YOUTUBE_API_KEY is set"
 - Make sure you created a `.env` file in the project root
 - Verify the API key is correctly copied (no extra spaces)
 - Check the variable name is exactly `YOUTUBE_API_KEY`
 
-### "Please ensure OPENAI_API_KEY is set"
+#### "Please ensure OPENAI_API_KEY is set"
 - Make sure your `.env` file contains `OPENAI_API_KEY`
 - Verify your OpenAI API key is valid and active
 - Check you have credits available in your OpenAI account
 
-### "Video not found or inaccessible"
+#### "Video not found or inaccessible"
 - Verify the video ID is correct
 - Check if the video is public (private videos won't work)
 - Ensure your YouTube API key is valid
 
-### "No transcript could be fetched"
+##### "No transcript could be fetched"
 - The video may not have captions/subtitles available
 - Try a different video that has closed captions
 - Some videos have auto-generated captions that should work
 
-### "Failed to generate summary"
+#### "Failed to generate summary"
 - Check your OpenAI API key is valid
 - Verify you have available credits in your OpenAI account
 - Check your internet connection
 - Review the error message for specific details
 
+### Twitter/X Issues
+
+#### "No video found in this tweet"
+- Make sure the tweet actually contains a video (not just images)
+- The tweet must be public
+- Check that the URL is correct
+
+#### "Video is too large to process"
+- Twitter videos over 15MB cannot be processed
+- Try a shorter video tweet
+- This is a limitation of Gemini's inline data processing
+
+#### "Gemini API key is required for Twitter/X video processing"
+- Twitter/X videos require Gemini for video analysis
+- OpenAI cannot analyze video content directly
+- Add your Gemini API key to the `.env` file
+
+#### "Tweet not found"
+- Verify the tweet URL is correct
+- The tweet may have been deleted
+- The tweet may be from a private/protected account
+
+#### "Request timed out"
+- Large videos may take longer to download
+- Check your internet connection
+- Try again - the fxtwitter API may be temporarily slow
+
 ## Limitations
 
+### YouTube
 - Only works with public YouTube videos
 - Requires videos to have captions/transcripts available (auto-generated or manual)
-- OpenAI API usage incurs costs (though minimal with gpt-4o-mini)
 - Very long videos may hit token limits (can be adjusted in code)
+
+### Twitter/X
+- Maximum video size: 15MB (due to Gemini inline data limits)
+- Requires Gemini API key (OpenAI cannot analyze videos)
+- Only public tweets are supported
+- Tweet must contain a video (not just images or text)
+
+### General
+- OpenAI API usage incurs costs (though minimal with gpt-4o-mini)
+- Gemini API has a generous free tier
 
 ## Configuration
 
@@ -315,7 +418,11 @@ Potential features to add:
 - [ ] Playlist support
 - [ ] Language detection and translation
 - [ ] Custom prompts for domain-specific summaries
-- [ ] Web interface
+- [x] ~~Web interface~~ ✅ Implemented
+- [x] ~~Twitter/X video support~~ ✅ Implemented
+- [ ] Instagram Reels support
+- [ ] TikTok video support
+- [ ] Larger video file support via Gemini File API
 
 ## Support
 
@@ -327,8 +434,10 @@ If you encounter issues:
 
 ## Acknowledgments
 
-- **youtubei.js** - For making transcript fetching possible
+- **youtubei.js** - For making YouTube transcript fetching possible
 - **OpenAI** - For providing powerful AI summarization
+- **Google Gemini** - For native video understanding capabilities
+- **fxtwitter** - For Twitter/X video URL extraction
 - **YouTube Data API** - For video metadata access
 
 ---
@@ -336,3 +445,5 @@ If you encounter issues:
 **Happy Summarizing! 🎉**
 
 Made with ❤️ for efficient learning and content consumption.
+
+**Supports:** YouTube • Twitter/X
