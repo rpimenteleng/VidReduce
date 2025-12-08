@@ -211,13 +211,59 @@
 
         .result .summary-preview {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 20px 25px;
+            border-radius: 12px;
             margin: 15px 0;
-            border-left: 3px solid #4ecdc4;
-            white-space: pre-line;
+            border-left: 4px solid #4ecdc4;
             font-size: 0.95rem;
-            line-height: 1.6;
+            line-height: 1.7;
+        }
+
+        .result .summary-preview h3 {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result .summary-preview h3:first-child {
+            margin-top: 0;
+        }
+
+        .result .summary-preview ul {
+            margin: 10px 0;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .result .summary-preview li {
+            position: relative;
+            padding: 8px 0 8px 24px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .result .summary-preview li:last-child {
+            border-bottom: none;
+        }
+
+        .result .summary-preview li::before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+
+        .result .summary-preview p {
+            margin: 10px 0;
+            color: #444;
+        }
+
+        .result .summary-preview strong {
+            color: #2c3e50;
+            font-weight: 600;
         }
 
         .stats {
@@ -700,7 +746,8 @@
                         document.getElementById('transcriptStats').textContent = `${resultData.transcriptLength} characters`;
                     }
                     
-                    document.getElementById('summaryContent').textContent = resultData.summary;
+                    // Use innerHTML to render HTML-formatted summary
+                    document.getElementById('summaryContent').innerHTML = resultData.summary;
 
                     // Set up download buttons with actual content
                     setupDownloadButtons(resultData);

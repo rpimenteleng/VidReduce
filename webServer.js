@@ -149,18 +149,26 @@ async function analyzeVideoWithGemini(videoUrl, tweetText, authorName, apiKey) {
     if (videoUrl.includes('.webm')) mimeType = 'video/webm';
     else if (videoUrl.includes('.mov')) mimeType = 'video/mov';
 
-    const prompt = `You are analyzing a Twitter/X video. Please provide a comprehensive summary of this video.
+    const prompt = `You are analyzing a Twitter/X video. Please provide a comprehensive summary formatted as HTML.
 
 Tweet text: "${tweetText}"
 Posted by: @${authorName}
 
-Please analyze the video and provide:
-1. A brief description of what's happening in the video
-2. Key points or main message
-3. Any spoken content or dialogue (transcribe if possible)
-4. Main takeaways in bullet point format
+Please analyze the video and format your response as clean HTML:
 
-IMPORTANT: Focus on the actual video content. If there's speech, transcribe the key parts. Format your response with clear bullet points for the main takeaways.`;
+1. Use <h3>🎬 Video Description</h3> followed by a <p> describing what's happening
+2. Use <h3>🗣️ Spoken Content</h3> with a <p> for any transcribed dialogue (if applicable)
+3. Use <h3>📌 Key Takeaways</h3> followed by <ul><li> bullet points
+4. Use <h3>💡 Conclusion</h3> with a <p> for the final summary
+
+Style guidelines:
+- Use <strong> to emphasize key terms or concepts
+- Keep the HTML simple and clean (no CSS classes needed)
+- Do NOT include <html>, <head>, <body> tags - just the content
+- Do NOT wrap in code blocks or markdown
+- If no spoken content, you can skip that section
+
+Start directly with the <h3> tag.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
@@ -285,22 +293,35 @@ async function summarizeWithOpenAI(transcript, videoTitle, apiKey) {
     messages: [
       {
         role: "system",
-        content: "You are a helpful assistant that summarizes YouTube video transcripts. Provide ONLY the main takeaways in bullet point format."
+        content: "You are a helpful assistant that summarizes YouTube video transcripts. Format your response as clean HTML that can be displayed directly in a web page."
       },
       {
         role: "user",
-        content: `Please summarize the following YouTube video transcript and provide ONLY the main takeaways in bullet point format.
+        content: `Please summarize the following YouTube video transcript and format the output as HTML.
 
 Video Title: ${videoTitle}
 
 Transcript:
 ${transcript}
 
-IMPORTANT: Your response should ONLY contain bullet points with the key takeaways. Do not include any introductory text, conclusions, or explanations. Start directly with the bullet points.`
+IMPORTANT: Format your response as clean HTML with the following structure:
+1. Use <h3>📌 Key Takeaways</h3> as a header
+2. Use <ul> with <li> elements for bullet points (use emoji bullets like • or ▸)
+3. Use <h3>💡 Conclusion</h3> as header for the conclusion
+4. Use <p> for the conclusion paragraph
+
+Style guidelines:
+- Make bullet points concise but insightful
+- Use <strong> to emphasize key terms or concepts
+- Keep the HTML simple and clean (no CSS classes needed)
+- Do NOT include <html>, <head>, <body> tags - just the content
+- Do NOT wrap in code blocks or markdown
+
+Start directly with the <h3> tag.`
       }
     ],
     temperature: 0.7,
-    max_tokens: 1000
+    max_tokens: 2000
   });
 
   return response.choices[0].message.content;
@@ -338,14 +359,27 @@ async function summarizeWithGemini(transcript, videoTitle, apiKey) {
 
     console.log(`Using Gemini model: ${modelToUse}`);
 
-    const prompt = `Please do a thorough bullet point summary with the most prescient insights from the following YouTube video transcript and provide ONLY the main takeaways in bullet point format.
+    const prompt = `Please provide a thorough summary with the most prescient insights from the following YouTube video transcript. Format the output as HTML.
 
 Video Title: ${videoTitle}
 
 Transcript:
 ${transcript}
 
-IMPORTANT: Your response should ONLY contain bullet points with the key takeaways. Do not include any introductory text, conclusions, or explanations. Start directly with the bullet points.`;
+IMPORTANT: Format your response as clean HTML with the following structure:
+1. Use <h3>📌 Key Takeaways</h3> as a header
+2. Use <ul> with <li> elements for bullet points
+3. Use <h3>💡 Conclusion</h3> as header for the conclusion
+4. Use <p> for the conclusion paragraph
+
+Style guidelines:
+- Make bullet points concise but insightful
+- Use <strong> to emphasize key terms or concepts
+- Keep the HTML simple and clean (no CSS classes needed)
+- Do NOT include <html>, <head>, <body> tags - just the content
+- Do NOT wrap in code blocks or markdown
+
+Start directly with the <h3> tag.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`, {
       method: 'POST',
