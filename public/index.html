@@ -4,10 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VidReduce - AI-Powered Video Summarizer</title>
+
+    <meta name="description" content="Extract key insights from YouTube videos and Twitter/X video posts using advanced AI. Get comprehensive summaries in seconds!">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://vidreduce.vercel.app/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="VidReduce">
+    <meta property="og:title" content="VidReduce - AI-Powered Video Summarizer">
+    <meta property="og:description" content="Extract key insights from YouTube videos and Twitter/X video posts using advanced AI. Get comprehensive summaries in seconds!">
+    <meta property="og:url" content="https://vidreduce.vercel.app/">
+    <meta property="og:image" content="https://vidreduce.vercel.app/favicon.svg">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="VidReduce - AI-Powered Video Summarizer">
+    <meta name="twitter:description" content="Extract key insights from YouTube videos and Twitter/X video posts using advanced AI. Get comprehensive summaries in seconds!">
+    <meta name="twitter:image" content="https://vidreduce.vercel.app/favicon.svg">
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="apple-touch-icon" href="/favicon.svg">
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "VidReduce",
+            "applicationCategory": "VideoApplication",
+            "operatingSystem": "Web",
+            "url": "https://vidreduce.vercel.app/",
+            "description": "Extract key insights from YouTube videos and Twitter/X video posts using advanced AI. Get comprehensive summaries in seconds!",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            }
+        }
+    </script>
     
     <style>
         :root {
@@ -468,12 +501,13 @@
             margin-bottom: 2rem;
         }
 
-        .ai-provider-section label {
+        .ai-provider-section .section-heading {
             display: block;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 1rem;
             color: var(--text);
             font-size: 1.1rem;
+            letter-spacing: -0.01em;
         }
 
         .ai-provider-options {
@@ -634,7 +668,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🎥 VidReduce</div>
+            <h1 class="logo">🎥 VidReduce</h1>
             <div class="subtitle">AI-Powered Video Summarizer</div>
             <div class="description">
                 Extract key insights from YouTube videos and Twitter/X video posts using advanced AI. Get comprehensive summaries in seconds!
@@ -643,7 +677,7 @@
 
         <form id="summarizeForm">
             <div class="ai-provider-section" id="aiProviderSection">
-                <label>🤖 Choose AI Provider</label>
+                <h2 class="section-heading">🤖 Choose AI Provider</h2>
                 <div class="ai-provider-options">
                     <div class="ai-option" data-provider="openai">
                         <input type="radio" id="openai" name="aiProvider" value="openai" checked>
